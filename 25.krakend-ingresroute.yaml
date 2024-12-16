@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: krakend-ingressroute
+  namespace: krakend
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - match: PathPrefix(`/api`)
+    kind: Rule
+    services:
+    - name: krakend-service
+      port: 8000
+  tls: {}

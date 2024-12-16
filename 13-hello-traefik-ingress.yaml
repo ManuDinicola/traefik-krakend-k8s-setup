@@ -1,0 +1,15 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: hello-ingressroute
+  namespace: my-application
+spec:
+  entryPoints:
+  - websecure
+  routes:
+  - match: Host(`hello.mydns.com`)
+    kind: Rule
+    services:
+    - name: helloservice
+      port: 8080
+  tls: {}

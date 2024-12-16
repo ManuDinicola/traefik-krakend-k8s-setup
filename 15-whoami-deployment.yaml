@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: whoami
+  namespace: my-application
+  labels:
+    app: whoami
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      serviceAccountName: whoami-account
+      containers:
+      - name: whoami
+        image: traefik/whoami
+        ports:
+        - name: web
+          containerPort: 80
+        env:
+        - name: KRAKEND_PORT
+          value: "8080"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 200m
+            memory: 100Mi
+          limits:
+            cpu: 200m
+            memory: 100Mi
+        volumeMounts:
+        - name: cache-dir
+          mountPath: /.cache
+          readOnly: false
+        - name: tmp-dir
+          mountPath: /tmp
+          readOnly: false
+        - name: local-dir
+          mountPath: /.local
+          readOnly: false
+
+      volumes:
+      - name: cache-dir
+        emptyDir: {}
+      - name: tmp-dir
+        emptyDir: {}
+      - name: local-dir
+        emptyDir: {}

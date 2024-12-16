@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helloservice
+  namespace: my-application
+  labels:
+    app: helloservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: helloservice
+  template:
+    metadata:
+      labels:
+        app: helloservice
+    spec:
+      serviceAccountName: helloservice-account
+      containers:
+      - name: hello-flask
+        image: python:3.11-slim
+        ports:
+        - containerPort: 8080
+        command: [ "sh", "-c", "pip install flask && python3 -c \"$FLASK_APP\"" ]
+        env:
+        - name: FLASK_APP
+          value: |
+            from flask import Flask, request, jsonify
+            import socket, os
+            app = Flask(__name__)
+
+            @app.route('/')
+            def home():
+                return "Hello, this is your inline Flask app!"
+
+            @app.route('/info')
+            def info():
+                return jsonify({
+                    "Server address": socket.gethostbyname(socket.gethostname()),
+                    "Server name": socket.gethostname(),
+                    "Environment port": os.getenv("KRAKEND_PORT", "8080"),
+                    "Path": request.path
+                })
+
+            if __name__ == "__main__":
+                app.run(host="0.0.0.0", port=8080)
+        - name: KRAKEND_PORT
+          value: "8080"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 200m
+            memory: 100Mi
+          limits:
+            cpu: 200m
+            memory: 100Mi
+        volumeMounts:
+        - name: cache-dir
+          mountPath: /.cache
+          readOnly: false
+        - name: tmp-dir
+          mountPath: /tmp
+          readOnly: false
+        - name: local-dir
+          mountPath: /.local
+          readOnly: false
+
+      volumes:
+      - name: cache-dir
+        emptyDir: {}
+      - name: tmp-dir
+        emptyDir: {}
+      - name: local-dir
+        emptyDir: {}

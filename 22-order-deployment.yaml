@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orderservice
+  namespace: my-application
+  labels:
+    app: orderservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: orderservice
+  template:
+    metadata:
+      labels:
+        app: orderservice
+    spec:
+      serviceAccountName: orderservice-account
+      containers:
+      - name: hello-flask
+        image: python:3.11-slim
+        ports:
+        - containerPort: 8080
+        command: [ "sh", "-c", "pip install flask && python3 -c \"$FLASK_APP\"" ]
+        env:
+        - name: FLASK_APP
+          value: |
+            from flask import Flask, jsonify
+            app = Flask(__name__)
+            @app.route('/orders/<int:user_id>', methods=['GET'])
+            def get_orders(user_id):
+                return jsonify({"user_id": user_id, "orders": [{"order_id": 101, "item": "Laptop"}, {"order_id": 102, "item": "Phone"}]})
+            app.run(host='0.0.0.0', port=5000)
+        - name: KRAKEND_PORT
+          value: "8080"
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          runAsUser: 1000
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        resources:
+          requests:
+            cpu: 200m
+            memory: 100Mi
+          limits:
+            cpu: 200m
+            memory: 100Mi
+        volumeMounts:
+        - name: cache-dir
+          mountPath: /.cache
+          readOnly: false
+        - name: tmp-dir
+          mountPath: /tmp
+          readOnly: false
+        - name: local-dir
+          mountPath: /.local
+          readOnly: false
+
+      volumes:
+      - name: cache-dir
+        emptyDir: {}
+      - name: tmp-dir
+        emptyDir: {}
+      - name: local-dir
+        emptyDir: {}

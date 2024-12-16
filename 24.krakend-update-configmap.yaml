@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: krakend-config
+  namespace: krakend
+data:
+  krakend.json: |
+    {
+      "version": 3,
+      "timeout": "3000ms",
+      "cache_ttl": "300s",
+      "name": "krakend-gateway",
+      "endpoints": [
+        {
+          "endpoint": "/api/user-details/{user_id}",
+          "method": "GET",
+          "backend": [
+            {
+              "url_pattern": "/users/{user_id}",
+              "host": ["http://userservice.my-application.svc.cluster.local:5000"]
+            },
+            {
+              "url_pattern": "/orders/{user_id}",
+              "host": ["http://orderservice.my-application.svc.cluster.local:5000"]
+            }
+          ],
+          "extra_config": {
+            "combine": {
+              "output": {
+                "users": "0",
+                "orders": "1"
+              }
+            }
+          }
+        }
+      ]
+    }
