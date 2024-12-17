@@ -7,7 +7,7 @@ spec:
   entryPoints:
   - websecure
   routes:
-  - match: PathPrefix(`/api`)
+  - match: Host(`api.mydns.com`) && PathPrefix(`/api`)
     kind: Rule
     services:
     - name: krakend-service
