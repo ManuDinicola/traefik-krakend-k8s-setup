@@ -20,6 +20,7 @@ spec:
       - name: traefik
         image: traefik:v3.2
         args:
+        - --accesslog
         - --providers.kubernetescrd
         - --providers.kubernetesingress
         - --log.level=DEBUG
@@ -42,10 +43,6 @@ spec:
             - ALL
           seccompProfile:
             type: RuntimeDefault
-        volumeMounts:
-        - name: tls-secret
-          mountPath: /certs
-          readOnly: true
         resources:
           requests:
             cpu: 200m
@@ -53,7 +50,3 @@ spec:
           limits:
             cpu: 200m
             memory: 100Mi
-      volumes:
-      - name: tls-secret
-        secret:
-          secretName: traefik-tls-secret
