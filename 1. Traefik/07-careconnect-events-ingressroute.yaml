@@ -1,0 +1,35 @@
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: careconnect-events-blocker
+  namespace: default # Adjust if your services/middleware are in a different namespace
+spec:
+  entryPoints:
+    - websecure # Assuming you are using the 'websecure' entrypoint for HTTPS
+  routes:
+    - match: HostRegexp(`{subdomain:.+}.careconnect.be`) && PathPrefix(`/events/`)
+      kind: Rule
+      priority: 100 # High priority
+      middlewares:
+        - name: internal-only-careconnect-events
+          namespace: default # Ensure this namespace matches the middleware's namespace
+      services:
+        - name: your-events-service # placeholder: REPLACE with your actual internal service for events
+          namespace: default # placeholder: REPLACE with your service's namespace
+          port: 80 # placeholder: REPLACE with your service's port
+  tls:
+    # Assuming you have a global TLS configuration or a specific one for this host.
+    # If you're using Let's Encrypt or another cert-manager, configure accordingly.
+    # For *.careconnect.be, you'd typically use a wildcard certificate.
+    # Example for a wildcard cert managed by cert-manager:
+    # secretName: careconnect-be-wildcard-tls
+    # If not specified, Traefik might try to use its default or generate one if configured.
+    # For now, leaving it empty to rely on global Traefik TLS config or a default cert.
+    # If specific TLS is needed, it should be defined here.
+    # For example, if you have a specific secret for *.careconnect.be:
+    # secretName: star-careconnect-be-tls
+    # Or, if using a CertResolver:
+    # certResolver: myresolver
+    # For this task, the primary goal is blocking, so TLS details are secondary but important for a real setup.
+    # Let's assume a certResolver 'le' for Let's Encrypt for now, or it can be omitted if handled globally.
+    certResolver: le # placeholder: Adjust or remove based on your TLS setup
