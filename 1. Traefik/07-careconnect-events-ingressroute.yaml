@@ -14,9 +14,8 @@ spec:
         - name: internal-only-careconnect-events
           namespace: default # Ensure this namespace matches the middleware's namespace
       services:
-        - name: your-events-service # placeholder: REPLACE with your actual internal service for events
-          namespace: default # placeholder: REPLACE with your service's namespace
-          port: 80 # placeholder: REPLACE with your service's port
+        - name: noop@internal
+          kind: TraefikService
   tls:
     # Assuming you have a global TLS configuration or a specific one for this host.
     # If you're using Let's Encrypt or another cert-manager, configure accordingly.
